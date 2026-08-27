@@ -150,7 +150,12 @@ while true; do
 	echo
 	chord_1=$(rand_chord)
 	pretty_print_chord $chord_1
-	chord_2=$(rand_chord)
+	while true; do # prevent chord_1 and chord_2 being the same chord
+		chord_2=$(rand_chord)
+		if [[ "$chord_1" != "$chord_2" ]]; then
+			break
+		fi
+	done
 	pretty_print_chord $chord_2
 	echo
 	read -n 1 -s -p "  $(accent_text Press key to continue...)" key
