@@ -42,7 +42,7 @@ print_chord_wrapper() {
 		dings="minor"
 	fi
 	pretty_print_chord $1
-	print-chords $key $dings $form --finger | sed 's/^/  /'
+	./print-chords.py $key $dings $form --finger | sed 's/^/  /'
 }
 
 # COUNTDOWN 5 MINUTES WITH ALARM
@@ -105,6 +105,7 @@ notes=("A " "B " "C " "D " "E " "F " "G " "A#" "C#" "D#" "F#" "G#" "Ab" "Bb" "Db
 chord_types=("Major" "Minor" "7    " "Min 7" "Maj 7" "Power")
 chord_forms=("E" "A" "D" "C" "G")
 SIMPLE_MODE=false
+CHORD_MODE=false
 INPUT_FILE=""
 data_dir="$XDG_DATA_HOME/aug-scripts"
 # config_file="$XDG_CONFIG_HOME/aug-scripts/config.toml"
@@ -118,7 +119,7 @@ readarray -t chord_types < <(yq '.practice_chords.types[]' $config_file)
 SIMPLE_MODE=$(yq '.practice_chords.simple' $config_file)
 
 # Parse Flags
-PARSED=$(getopt -o si: --long simple,input: -n "$0" -- "$@")
+PARSED=$(getopt -o si:c --long simple,input:,chord-mode -n "$0" -- "$@")
 if [ $? -ne 0 ]; then
     exit 1
 fi
@@ -127,6 +128,10 @@ while true; do
 	case "$1" in
 		-s|--simple)
 			SIMPLE_MODE=true
+			shift
+			;;
+		-c|--chord-mode)
+			CHORD_MODE=true
 			shift
 			;;
 		-i|--input)
@@ -167,6 +172,12 @@ while true; do
 		print_chord_wrapper "$chord_2"
 		wait_for_input
 	fi
-	countdown $chord_1 $chord_2
-	wait_for_input
+	if [ "$CHORD_MODE" != true ]; then
+		countdown $chord_1 $chord_2
+	else
+		clear
+		print_chord_wrapper "$chord_1"
+		print_chord_wrapper "$chord_2"
+	fi
+		wait_for_input
 done
