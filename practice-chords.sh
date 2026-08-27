@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# DATA
-notes=("A " "B " "C " "D " "E " "F " "G " "A#" "C#" "D#" "F#" "G#" "Ab" "Bb" "Db" "Eb" "Gb")
-# chord_types=("Major" "Minor" "7    " "Min 7" "Maj 7" "Power")
-chord_types=("Major" "Minor" "Power")
-chord_forms=("E" "A" "D" "C" "G")
-
 # CHOSE RANDOM CHORD
 rand_chord () {
 	rand_note=$((RANDOM%${#notes[@]}))
@@ -106,14 +100,29 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# PARSE FLAGS
+# INIT
+notes=("A " "B " "C " "D " "E " "F " "G " "A#" "C#" "D#" "F#" "G#" "Ab" "Bb" "Db" "Eb" "Gb")
+chord_types=("Major" "Minor" "7    " "Min 7" "Maj 7" "Power")
+chord_forms=("E" "A" "D" "C" "G")
+SIMPLE_MODE=false
+INPUT_FILE=""
+data_dir="$XDG_DATA_HOME/aug-scripts"
+# config_file="$XDG_CONFIG_HOME/aug-scripts/config.toml"
+config_file="./config.toml"
+mkdir -p $data_dir
+tput civis
+tput smcup
+
+# Parse Config
+readarray -t chord_types < <(yq '.practice_chords.types[]' $config_file)
+SIMPLE_MODE=$(yq '.practice_chords.simple' $config_file)
+
+# Parse Flags
 PARSED=$(getopt -o si: --long simple,input: -n "$0" -- "$@")
 if [ $? -ne 0 ]; then
     exit 1
 fi
 eval set -- "$PARSED"
-SIMPLE_MODE=false
-INPUT_FILE=""
 while true; do
 	case "$1" in
 		-s|--simple)
@@ -134,12 +143,6 @@ while true; do
 			;;
 	esac
 done
-
-# INIT
-data_dir="$XDG_DATA_HOME/aug-scripts"
-mkdir -p $data_dir
-tput civis
-tput smcup
 
 # MAIN LOOP
 while true; do
