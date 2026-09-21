@@ -1,6 +1,11 @@
 # aug-scripts
 Some scripts to practice guitar according to the AUG Lectures by Scotty West
 
+Required Packages: tput
+Optional Packages: yq (set config), glow
+
+While the script may print errors when missing the optionally required packages it should still work
+
 ## practice-chords
 ### Modes
 This script currently has two modes.

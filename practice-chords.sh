@@ -119,7 +119,7 @@ readarray -t chord_types < <(yq '.practice_chords.types[]' $config_file)
 SIMPLE_MODE=$(yq '.practice_chords.simple' $config_file)
 
 # Parse Flags
-PARSED=$(getopt -o si:d --long simple,input:,dry-practice -n "$0" -- "$@")
+PARSED=$(getopt -o si:dh --long simple,input:,dry-practice,help -n "$0" -- "$@")
 if [ $? -ne 0 ]; then
     exit 1
 fi
@@ -133,6 +133,11 @@ while true; do
 		-d|--dry-practice)
 			DRY_PRACTICE_MODE=true
 			shift
+			;;
+		-h|--help)
+			tput rmcup
+			glow ./README.md || cat ./README.md
+			exit
 			;;
 		-i|--input)
 			INPUT_FILE="$2"
@@ -150,14 +155,24 @@ while true; do
 done
 
 # MAIN LOOP
+chord_1_old=""
+chord_2_old=""
 while true; do
 	clear
 	echo
-	chord_1=$(rand_chord)
+	# chord_1=$(rand_chord)
+	while true; do # prevent chord_1 being from previous round
+		chord_1=$(rand_chord)
+		if [[ "$chord_1" != "$chord_1_old" ]] && [[ "$chord_1" != "$chord_2_old" ]]; then
+			chord_1_old=$chord_1
+			break
+		fi
+	done
 	pretty_print_chord $chord_1
 	while true; do # prevent chord_1 and chord_2 being the same chord
 		chord_2=$(rand_chord)
-		if [[ "$chord_1" != "$chord_2" ]]; then
+		if [[ "$chord_1" != "$chord_2" ]] && [[ "$chord_2" != "$chord_1_old" ]] && [[ "$chord_2" != "$chord_2_old" ]]; then
+			chord_2_old=$chord_2
 			break
 		fi
 	done
@@ -176,7 +191,4 @@ while true; do
 		countdown $chord_1 $chord_2
 	fi
 	clear
-	print_chord_wrapper "$chord_1"
-	print_chord_wrapper "$chord_2"
-	wait_for_input
 done

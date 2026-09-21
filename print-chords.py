@@ -1,123 +1,17 @@
 #!/usr/bin/env python3
 import sys
 import argparse
+import json
 
 NOTES = ['E', 'F', 'F#/Gb', 'G', 'G#/Ab', 'A', 'A#/Bb', 'B', 'C', 'C#/Db', 'D', 'D#/Eb']
+SHAPES = ['C', 'A', 'G', 'E', 'D']
 
 # Format: e, B, G, D, A, E (High to Low)
 # Data: "relative_fret,finger,type". '-' for unplayed strings. 
 # Fret 0 represents the nut or the barre finger.
 # Format: e, B, G, D, A, E (High to Low)
-CHORD_DB = {
-    'major': {
-        'E': {
-            'position': [0, 2, 2, 1, 0, 0],
-            'finger': [0, 2, 3, 1, 0, 0],
-            'type': ['r', '', '', '', '', '']
-        },
-        'A': {
-            'position': [0, 0, 2, 2, 2, 0],
-            'finger': [0, 0, 1, 2, 3, 0],
-            'type': ['m', 'r', '', '', '', '']
-        },
-        'D': {
-            'position': [0, 0, 0, 2, 3, 2],
-            'finger': [0, 0, 0, 1, 3, 2],
-            'type': ['m', 'm', 'r', '', '', '']
-        },
-        'G': {
-            'position': [3, 2, 0, 0, 3, 3],
-            'finger': [1, 2, 0, 0, 3, 4],
-            'type': ['r', 'om', '', '', 'o', '']
-        },
-        'C': {
-            'position': [0, 3, 2, 0, 1, 0],
-            'finger': [0, 3, 2, 0, 1, 0],
-            'type': ['m', 'r', '', '', '', '']
-        },
-    },
-    'minor': {
-        'E': {
-            'position': [0, 2, 2, 0, 0, 0],
-            'finger': [0, 1, 2, 0, 0, 0],
-            'type': ['r', '', '', '', '', '']
-        },
-        'A': {
-            'position': [0, 0, 2, 2, 1, 0],
-            'finger': [0, 0, 2, 3, 1, 0],
-            'type': ['m', 'r', '', '', '', '']
-        },
-        'D': {
-            'position': [0, 0, 0, 2, 3, 1],
-            'finger': [0, 0, 0, 2, 4, 1],
-            'type': ['m', 'm', 'r', '', '', '']
-        },
-        'G': {
-            'position': [3, 1, 0, 0, 0, 0],
-            'finger': [3, 1, 0, 0, 0, 0],
-            'type': ['r', '', '', '', 'm', 'm']
-        },
-        'C': {
-            'position': [0, 3, 1, 0, 1, 0],
-            'finger': [0, 4, 1, 0, 2, 0],
-            'type': ['m', 'r', '', '', '', 'm']
-        },
-    },
-    'power': {
-        'E': {
-            'position': [1, 3, 3, 0, 0, 0],
-            'finger': [1, 3, 4, 0, 0, 0],
-            'type': ['r', '', '', 'm', 'm', 'm']
-        },
-        'A': {
-            'position': [0, 1, 3, 3, 0, 0],
-            'finger': [0, 1, 3, 3, 0, 0],
-            'type': ['m', 'r', '', '', 'm', 'm']
-        },
-        'D': {
-            'position': [0, 0, 1, 3, 4, 0],
-            'finger': [0, 0, 1, 3, 4, 0],
-            'type': ['m', 'm', 'r', '', '', 'm']
-        },
-        'G': {
-            'position': [0, 0, 0, 1, 4, 4],
-            'finger': [0, 0, 0, 1, 4, 4],
-            'type': ['m', 'm', 'm', 'r', '', '']
-        },
-        'C': {
-            'position': [0, 3, 0, 0, 1, 0],
-            'finger': [0, 3, 0, 0, 1, 0],
-            'type': ['m', 'r', 'm', '', '', 'm']
-        },
-    },
-    # 'chord': {
-    #     'E': {
-    #         'position': [0, 0, 0, 0, 0, 0],
-    #         'finger': [0, 0, 0, 0, 0, 0],
-    #         'type': ['', '', '', '', '', '']
-    #     },
-    #     'A': {
-    #         'position': [0, 0, 0, 0, 0, 0],
-    #         'finger': [0, 0, 0, 0, 0, 0],
-    #         'type': ['', '', '', '', '', '']
-    #     },
-    #     'D': {
-    #         'position': [0, 0, 0, 0, 0, 0],
-    #         'finger': [0, 0, 0, 0, 0, 0],
-    #         'type': ['', '', '', '', '', '']
-    #     },
-    #     'G': {
-    #         'position': [0, 0, 0, 0, 0, 0],
-    #         'finger': [0, 0, 0, 0, 0, 0],
-    #         'type': ['', '', '', '', '', '']
-    #     },
-    #     'C': {
-    #         'position': [0, 0, 0, 0, 0, 0],
-    #         'finger': [0, 0, 0, 0, 0, 0],
-    #         'type': ['', '', '', '', '', '']
-    #     },
-    # },
-}
+with open("chords.json", "r") as jsonfile:
+    CHORD_DB = json.load(jsonfile)
 
 def calculate_offset(base_form_note, target_note):
     try:
@@ -209,16 +103,26 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Render guitar chord tablatures.")
     parser.add_argument("note", help="Root note (e.g., C, G, F#)")
-    parser.add_argument("type", choices=types, help="Chord type")
-    parser.add_argument("shape", choices=['C', 'A', 'G', 'E', 'D'], help="CAGED shape to use")
+    parser.add_argument("type", default="major", nargs="?", choices=types, help="Chord type")
+    parser.add_argument("shape", nargs="?", choices=SHAPES, help="CAGED shape to use")
     parser.add_argument("-f", "--fingers", action="store_true", help="Display finger numbers instead of dots")
     parser.add_argument("--title", action="store_true", help="Display title")
 
     args = parser.parse_args()
 
+    if args.shape == None:
+        if args.note not in SHAPES:
+            print(f"Error: No such shape", file=sys.stderr)
+            sys.exit(1)
+        args.shape = args.note
+
     try:
         offset = calculate_offset(args.shape, args.note)
-        chord_lines = CHORD_DB[args.type][args.shape]
+        try:
+            chord_lines = CHORD_DB[args.type][args.shape]
+        except KeyError:
+            print(f"Error: Note not found in that type", file=sys.stderr)
+            sys.exit(1)
         parsed_data = reversed(parse_chord_data(chord_lines, offset))
         title = f"{args.note} {args.type} ({args.shape} Shape)"
         draw_horizontal(parsed_data, title, offset, args.fingers, args.title)
